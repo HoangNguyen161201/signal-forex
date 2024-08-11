@@ -1,22 +1,22 @@
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.support.ui import WebDriverWait
-import time
-from selenium.webdriver.support import expected_conditions as EC
+from telethon.sync import TelegramClient
+from data import api_id, api_hash, return_msg_dict
 
-# https://live-forex-signals.com/en/
-driver = webdriver.Chrome()
-driver.get('https://live-forex-signals.com/en/')
-wait = WebDriverWait(driver, 10)
-divs = wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, 'card-body')))
-if divs:
-    data = []
-    for div in divs:
-        if 'Filled' not in div.text and 'Premium' not in div.text:
-            data.append(div.text.strip())
+client = TelegramClient('session_name', api_id, api_hash)
 
-    print(data.__len__())
-else:
-    print("Không tìm thấy thẻ div với class 'card-body' trên trang.")
+async def get_message(id_room):
+    await client.start()
+    message = ''
+    async for msg in client.iter_messages(id_room, limit=200):
+        data = return_msg_dict.get(id_room)(msg)
+        if data:
+            message = data
+            break
+    print(message)
+
+
+    
+
+
+with client:
+    for item in return_msg_dict.keys():
+        client.loop.run_until_complete(get_message(item))
