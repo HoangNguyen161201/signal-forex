@@ -26,7 +26,8 @@ foreignCurrencies = [
 'GBP/JPY',
 'GBP/NZD',
 'GBP/USD',
-'NZD/JPY'
+'NZD/JPY',
+'XAU/USD'
 ] 
 
 api_id = '24104392'
@@ -42,10 +43,11 @@ def tradewithpatfreeMsg(msg):
         return result
     return None
 
-def tele1791801000(msg):
-    return msg
 
 return_msg_dict = {
-    '@tradewithpatfree': tradewithpatfreeMsg,
-    '': tele1791801000
+    '@tradewithpatfree': tradewithpatfreeMsg
+    '@GoldTradesignals11': d,
+    '@forexstarteam': s,
+    '@goldsignalsvip_S'
+
 }
