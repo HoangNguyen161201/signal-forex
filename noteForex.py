@@ -64,6 +64,12 @@ def wallStreetForexMsg(msg):
         return True
     return False
 
+def investopediaacademMsg(msg):
+    if 'tp' in msg.message.lower() and 'sl' in msg.message.lower() and ('sell' in msg.message.lower() or 'buy' in msg.message.lower()):
+        order = f'@investopediaacadem|{msg.id}'
+        sendOrder(order, msg)
+        return True
+    return False
 
 return_msg_dict = {
     # đã check
@@ -75,4 +81,5 @@ return_msg_dict = {
     '@GoldTradesignals11': goldTradesignals11Msg,
     '@goldsignalsvip_S': goldsignalsvipsMsg, 
     '@forexstarteam': forexstarteamMsg,
+    '@investopediaacadem': investopediaacademMsg 
 }

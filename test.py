@@ -5,9 +5,8 @@ client = TelegramClient('session_name', api_id, api_hash)
 
 async def get_message(id_room):
     await client.start()
-    message = ''
-    async for msg in client.iter_messages(id_room, limit=100):
-        if ('tp' in msg.message.lower() and 'sl' in msg.message.lower()) and ('limit' in msg.message.lower() or 'now' in msg.message.lower()):
+    async for msg in client.iter_messages(id_room, limit=200):
+        if 'tp' in msg.message.lower() and 'sl' in msg.message.lower() and ('sell' in msg.message.lower() or 'buy' in msg.message.lower()):
             print(msg.message)
 
 
@@ -15,4 +14,4 @@ async def get_message(id_room):
 
 
 with client:
-    client.loop.run_until_complete(get_message('gfr_smc_analysis'))
+    client.loop.run_until_complete(get_message('investopediaacadem'))
