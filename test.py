@@ -1,12 +1,12 @@
 from telethon.sync import TelegramClient
-from noteForex import api_id, api_hash, return_msg_dict
+from noteForex import api_id, api_hash
 
 client = TelegramClient('session_name', api_id, api_hash)
 
 async def get_message(id_room):
     await client.start()
     async for msg in client.iter_messages(id_room, limit=200):
-        if 'tp' in msg.message.lower() and 'sl' in msg.message.lower() and ('sell' in msg.message.lower() or 'buy' in msg.message.lower()):
+        if isinstance(msg.message, str) and 'entry' in msg.message.lower() and ('tp' in msg.message.lower() and 'sl' in msg.message.lower()):
             print(msg.message)
 
 
@@ -14,4 +14,4 @@ async def get_message(id_room):
 
 
 with client:
-    client.loop.run_until_complete(get_message('investopediaacadem'))
+    client.loop.run_until_complete(get_message('Akeem_the_trader'))

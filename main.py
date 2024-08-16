@@ -17,5 +17,5 @@ while True:
         for item in return_msg_dict.keys():
             client.loop.run_until_complete(get_message(item))
     loop += 1
-    time.sleep(5)
+    time.sleep(1)
     print(f'loop {loop}')
