@@ -13,14 +13,27 @@ def create_order_mt5(msg):
         print(msg.message)
         pattern = r'[\d]+[.,\d]+|[\d]*[.][\d]+|[\d]+'
         matches = re.findall(pattern, msg.message)
-        print(matches)
         numbers = [num for num in matches if len(num) >= 4]
         numbers = [float(num) for num in numbers ]
         numbers.sort()
-        print(numbers)
         type = 'buy' if 'buy' in msg.message.lower() else 'sell'
+
+        # get price ----------------------------------------------------------------
+        price = None
+        regex_price = r'((?:\d+[,.\d]*)|(?:\d*[.]\d+))-(?:(\d+[,.\d]*)|(\d*[.]\d+))'
+        match_price = re.search(regex_price, msg.message)
+        prices = []
+        if match_price:
+            prices.append(match_price.group(1)), prices.append(match_price.group(2)) 
+        prices = [num for num in prices if len(num) >= 4]
+        prices = [float(num) for num in prices ]
+        if(prices.__len__() > 1):
+            price = prices
+            numbers.remove(prices[0])
+        else:
+            price = numbers[1] if type == 'buy' else numbers[numbers.__len__() - 2]
+
         sl = numbers[0] if type == 'buy' else numbers[numbers.__len__() - 1]
-        price = numbers[1] if type == 'buy' else numbers[numbers.__len__() - 2]
         tp = numbers[2] if type == 'buy' else numbers[numbers.__len__() - 3]
         
         symbol = 'XAUUSDm' if 'gold' in msg.message.lower() else None
@@ -89,12 +102,6 @@ def forexGoldensignallMsg(msg):
         return True
     return False
 
-def wallStreetForexMsg(msg):
-    if isinstance(msg.message, str) and 'tp' in msg.message.lower() and 'sl' in msg.message.lower():        
-        order = f'@WallStreetForex_Signals|{msg.id}'
-        sendOrder(order, msg)
-        return True
-    return False
 
 def investopediaacademMsg(msg):
     if isinstance(msg.message, str) and 'tp' in msg.message.lower() and 'sl' in msg.message.lower() and ('sell' in msg.message.lower() or 'buy' in msg.message.lower()):
@@ -125,10 +132,30 @@ def Akeem_the_traderMsg(msg):
         return True
     return False
 
+def easyForexPipsMsg(msg):
+    if isinstance(msg.message, str) and 'tp' in msg.message.lower() and 'sl' in msg.message.lower():        
+        order = f'@EasyForexPips|{msg.id}'
+        sendOrder(order, msg)
+        return True
+    return False
+
+def USDJPMsg(msg):
+    if isinstance(msg.message, str) and 'tp' in msg.message.lower() and 'sl' in msg.message.lower():        
+        order = f'@USDJP|{msg.id}'
+        sendOrder(order, msg)
+        return True
+    return False
+
+def craigPercoc0Msg(msg):
+    if isinstance(msg.message, str) and 'tp' in msg.message.lower() and 'sl' in msg.message.lower():        
+        order = f'@Craig_Percoc0|{msg.id}'
+        sendOrder(order, msg)
+        return True
+    return False
+
 # win:5, #risk:0
 return_msg_dict = {
     # đã check
-    '@WallStreetForex_Signals': wallStreetForexMsg, #win: 2 #risk: 2 #lenh: xauusd
     '@ForexGoldensignall': forexGoldensignallMsg, #win: 2 #risk: 1
     'GOLDFOREXMT4MT5': GOLDFOREXMT4MT5Msg, # win:1 #risk:0
 
@@ -140,10 +167,10 @@ return_msg_dict = {
     '@investopediaacadem': investopediaacademMsg, #win: 0 #loss:0 #lenh: xausd
     
     # kho nhai do sl to, tp thap
-    'Akeem_the_trader': Akeem_the_traderMsg # win: 0 # loss: 0 # lenh: gbpcad
-    # EasyForexPips
-    # USDJP
-    # Craig_Percoc0
+    'Akeem_the_trader': Akeem_the_traderMsg, # win: 0 # loss: 0 # lenh: gbpcad
+    'EasyForexPips': easyForexPipsMsg,
+    'USDJP': USDJPMsg,
+    'Craig_Percoc0': craigPercoc0Msg
 }
 
 
