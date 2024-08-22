@@ -9,7 +9,7 @@ client = TelegramClient('session_name', api_id, api_hash)
 async def get_message(id_room):
     await client.start()
     async for msg in client.iter_messages(id_room, limit=200):
-        if isinstance(msg.message, str) and 'tp' in msg.message.lower() and 'sl' in msg.message.lower():
+        if isinstance(msg.message, str) and 'tp' in msg.message.lower() and 'sl' in msg.message.lower():        
             try:
                 print(msg.message)
                 pattern = r'[\d]+[.,\d]+|[\d]*[.][\d]+|[\d]+'
@@ -45,12 +45,12 @@ async def get_message(id_room):
                             symbol = symbols.get(key)
                             break
                 if(symbol):
-                    create_order(type, symbol, price, sl, tp)
-                    break
+                    print(type, symbol, price, sl, tp)
+                    # create_order(type, symbol, price, sl, tp)
             except Exception as e:
                 print(f"Đã xảy ra một lỗi khi tạo order: {e}")
 
 
 
 with client:
-    client.loop.run_until_complete(get_message('Craig_Percoc0'))
+    client.loop.run_until_complete(get_message('WSForexSignalsFREE'))

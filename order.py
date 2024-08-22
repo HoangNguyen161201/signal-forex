@@ -58,10 +58,12 @@ def create_order(type, symbol, price, sl, tp):
         if(price_current >= price[0] and price_current <= price[1]):
             trade_request = trade_request_current(type, sl, tp, symbol, price_current)
         else:
-            price_peding = (price[0] + (price[1] - price[0]) * 0.3) if type == 'buy' else (price[0] + (price[1] - price[0]) * 0.7)
+            # price_peding = (price[0] + (price[1] - price[0]) * 0.2) if type == 'buy' else (price[0] + (price[1] - price[0]) * 0.8)
+            price_peding = price[1] if type == 'buy' else price[0]
             trade_request = trade_request_pending(type, sl, tp, symbol, price_peding)
     else:
-        trade_request = trade_request_pending(type, sl, tp, symbol,  price)
+        price_current = mt5.symbol_info_tick(symbol).ask if type == 'buy' else mt5.symbol_info_tick(symbol).bid
+        trade_request = trade_request_current(type, sl, tp, symbol,  price_current)
 
     if(trade_request):
         # Gửi lệnh

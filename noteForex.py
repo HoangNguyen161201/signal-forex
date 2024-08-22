@@ -153,6 +153,20 @@ def craigPercoc0Msg(msg):
         return True
     return False
 
+def WSForexSignalsFREEMsg(msg):
+    if isinstance(msg.message, str) and 'tp' in msg.message.lower() and 'sl' in msg.message.lower():        
+        order = f'@WSForexSignalsFREE|{msg.id}'
+        sendOrder(order, msg)
+        return True
+    return False
+
+def ForexxbluepipsMsg(msg):
+    if isinstance(msg.message, str) and 'stop loss' in msg.message.lower():        
+        order = f'@Forexxbluepips|{msg.id}'
+        sendOrder(order, msg)
+        return True
+    return False
+
 # win:5, #risk:0
 return_msg_dict = {
     # đã check
@@ -170,7 +184,9 @@ return_msg_dict = {
     'Akeem_the_trader': Akeem_the_traderMsg, # win: 0 # loss: 0 # lenh: gbpcad
     'EasyForexPips': easyForexPipsMsg,
     'USDJP': USDJPMsg,
-    'Craig_Percoc0': craigPercoc0Msg
+    'Craig_Percoc0': craigPercoc0Msg,
+    'Forexxbluepips': ForexxbluepipsMsg,
+    'WSForexSignalsFREE': WSForexSignalsFREEMsg
 }
 
 
