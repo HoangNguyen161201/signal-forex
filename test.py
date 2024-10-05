@@ -2,7 +2,6 @@ from telethon.sync import TelegramClient
 from noteForex import api_id, api_hash
 import re
 from data import symbols
-from order import create_order
 
 client = TelegramClient('session_name', api_id, api_hash)
 
@@ -46,7 +45,6 @@ async def get_message(id_room):
                             break
                 if(symbol):
                     print(type, symbol, price, sl, tp)
-                    # create_order(type, symbol, price, sl, tp)
             except Exception as e:
                 print(f"Đã xảy ra một lỗi khi tạo order: {e}")
 

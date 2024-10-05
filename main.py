@@ -6,7 +6,7 @@ client = TelegramClient('session_name', api_id, api_hash)
 
 async def get_message(id_room):
     await client.start()
-    async for msg in client.iter_messages(id_room, limit=20):
+    async for msg in client.iter_messages(id_room, limit=200):
         data = return_msg_dict.get(id_room)(msg)
         if data:
             break
