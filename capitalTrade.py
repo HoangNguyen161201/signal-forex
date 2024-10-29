@@ -35,11 +35,11 @@ while True:
             threading.Thread(target=play_sound).start()
 
             is_buy = False if nifty_index_data.iloc[0]['open'] < nifty_index_data.iloc[0]['close'] else True
-            case = int(input("Nhập trade (1 harf) (2 full): "))
-            # if(is_buy and (nifty_index_data.iloc[0]['high'] - nifty_index_data.iloc[0]['open'] > nifty_index_data.iloc[0]['open'] - nifty_index_data.iloc[0]['close'] or nifty_index_data.iloc[0]['close'] - nifty_index_data.iloc[0]['low'] > nifty_index_data.iloc[0]['open'] - nifty_index_data.iloc[0]['close'] )):
-            #     case = 2
-            # if(is_buy == False and (nifty_index_data.iloc[0]['high'] - nifty_index_data.iloc[0]['close'] > nifty_index_data.iloc[0]['close'] - nifty_index_data.iloc[0]['open'] or nifty_index_data.iloc[0]['open'] - nifty_index_data.iloc[0]['low'] > nifty_index_data.iloc[0]['close'] - nifty_index_data.iloc[0]['open'] )):
-            #     case = 2
+            case = 1
+            if(is_buy and (nifty_index_data.iloc[0]['high'] - nifty_index_data.iloc[0]['open'] >= (nifty_index_data.iloc[0]['open'] - nifty_index_data.iloc[0]['close']) * 1.5 or nifty_index_data.iloc[0]['close'] - nifty_index_data.iloc[0]['low'] >= (nifty_index_data.iloc[0]['open'] - nifty_index_data.iloc[0]['close']) * 1.5 )):
+                case = 2
+            if(is_buy == False and (nifty_index_data.iloc[0]['high'] - nifty_index_data.iloc[0]['close'] >= (nifty_index_data.iloc[0]['close'] - nifty_index_data.iloc[0]['open']) * 1.5 or nifty_index_data.iloc[0]['open'] - nifty_index_data.iloc[0]['low'] >= (nifty_index_data.iloc[0]['close'] - nifty_index_data.iloc[0]['open']) * 1.5 )):
+                case = 2
             data = get_price_older(symbol_exness, mt5.TIMEFRAME_M5)
             if(case == 1 or case == 2):
                 if(is_buy):

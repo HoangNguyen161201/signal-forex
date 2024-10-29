@@ -41,7 +41,8 @@ def place_stop( symbol, type, lot, stop_price, stop_loss, take_profit, magic_num
         "magic": magic_number,
         "type_time": mt5.ORDER_TIME_SPECIFIED, 
         "type_filling": mt5.ORDER_FILLING_IOC,
-        "expiration": int(expiration_time.timestamp())
+        "expiration": int(expiration_time.timestamp()),
+        "comment": f'{stop_loss}',
     }
 
     # Gửi yêu cầu lệnh
