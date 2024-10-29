@@ -1,7 +1,7 @@
 import MetaTrader5 as mt5
 from datetime import datetime, timedelta
 
-def place_stop( symbol, type, lot, stop_price, stop_loss, take_profit, magic_number=234000, deviation=20):
+def place_stop( symbol, type, lot, stop_price, stop_loss, take_profit, magic_number=234000, deviation=10):
     # Khởi động MetaTrader 5
     if not mt5.initialize():
         print("Lỗi khi khởi tạo MetaTrader5", mt5.last_error())
@@ -26,7 +26,7 @@ def place_stop( symbol, type, lot, stop_price, stop_loss, take_profit, magic_num
         mt5.symbol_select(symbol, True)
 
     current_time = datetime.now().replace(second=0, microsecond=0)
-    expiration_time = current_time + timedelta(minutes=2)
+    expiration_time = current_time + timedelta(minutes=10)
 
     # Tạo yêu cầu lệnh
     order_request = {
