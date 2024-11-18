@@ -36,8 +36,6 @@ def updare_sl(symbol, timeframe):
                     current_price = previous_candle['high' if is_buy else 'low']   # Giá mở cửa
 
                 
-
-                
                 if(((is_buy and sl < entry_price) or (not is_buy and sl > entry_price) ) and abs(current_price - entry_price) > abs(entry_price - sl_initial)/ 2):
                     request = {
                         "action": mt5.TRADE_ACTION_SLTP,
@@ -50,8 +48,8 @@ def updare_sl(symbol, timeframe):
                   
 
                 if((is_buy and sl >= entry_price) or (not is_buy and sl <= entry_price)):
-                    sl =  round(sl + abs(entry_price - sl_initial)/2 if is_buy else sl - abs(entry_price - sl_initial)/2, 3)
-                    if((is_buy and sl < current_price - abs(entry_price - sl_initial)/2) or not is_buy and sl > current_price + abs(entry_price - sl_initial)/2):
+                    sl =  round(sl + abs(entry_price - sl_initial) if is_buy else sl - abs(entry_price - sl_initial), 3)
+                    if((is_buy and sl < current_price - abs(entry_price - sl_initial)) or not is_buy and sl > current_price + abs(entry_price - sl_initial)):
                         request = {
                             "action": mt5.TRADE_ACTION_SLTP,
                             "symbol": symbol,
@@ -65,5 +63,6 @@ def updare_sl(symbol, timeframe):
     # Đóng kết nối MT5
     mt5.shutdown()
 
+print('start')
 while True:
-    updare_sl('XAUUSD', mt5.TIMEFRAME_M5)
+    updare_sl('XAUUSD', mt5.TIMEFRAME_M1)

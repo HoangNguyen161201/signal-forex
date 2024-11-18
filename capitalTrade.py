@@ -1,67 +1,62 @@
-from tvDatafeed import TvDatafeed, Interval
 from pygame import mixer  # Load the popular external library
 from oder import place_stop, get_price_older, CalculateLotSize, close_order_by_magic_number
 import MetaTrader5 as mt5
 import threading
+from capital_func import CapitalcomData
+import capitalcom
 
 print("start")
+capitalcom_data = CapitalcomData('BTCUSD')
 
 #info
-symbol_exness = 'XAUUSD'
-symbol_tradingview = 'GOLD'
+symbol_tradingview = 'BTCUSD'
 price_check = 0
-is_buy = False
-margic_number = 1
-is_delete_old_order = True
 
 def play_sound():  
     mixer.init()
     mixer.music.load('./ring.mp3')
     mixer.music.play()
 
+def calculate_volume(price1, price2):
+    price_difference = abs(price2 - price1)
+    volume = round(0.01 / (97.65 / price_difference), 2); 
+    return volume
+
 while True:
     try:
-        tv = TvDatafeed()
-        nifty_index_data = tv.get_hist(symbol= symbol_tradingview,exchange='CAPITALCOM',interval=Interval.in_5_minute,n_bars=2)
-        print(f'{nifty_index_data.iloc[0]['close']}-{nifty_index_data.iloc[1]['open']}')
-        if(is_delete_old_order == False and price_check != nifty_index_data.iloc[0]['close']):
-            new_is_buy = False if nifty_index_data.iloc[0]['open'] < nifty_index_data.iloc[0]['close'] else True
-            if(new_is_buy == is_buy):
-                close_order_by_magic_number(margic_number - 1)
-                is_delete_old_order = True
-                print("đã đóng lệnh")
+        prices = capitalcom_data.get_prices_history(capitalcom.client.ResolutionType.MINUTE_5, 3)
+        open1 = prices['prices'][0]['openPrice']['bid'] 
+        close1 = prices['prices'][0]['closePrice']['bid'] 
+        high1 = prices['prices'][0]['highPrice']['bid'] 
+        low1 = prices['prices'][0]['lowPrice']['bid'] 
 
-        if(price_check != nifty_index_data.iloc[0]['close'] and nifty_index_data.iloc[0]['close'] == nifty_index_data.iloc[1]['open']):
-            threading.Thread(target=play_sound).start()
+        open2 = prices['prices'][1]['openPrice']['bid'] 
+        close2 = prices['prices'][1]['closePrice']['bid'] 
+        high2 = prices['prices'][1]['highPrice']['bid'] 
+        low2 = prices['prices'][1]['lowPrice']['bid'] 
 
-            is_buy = False if nifty_index_data.iloc[0]['open'] < nifty_index_data.iloc[0]['close'] else True
-            case = 1
-            if(is_buy and (nifty_index_data.iloc[0]['high'] - nifty_index_data.iloc[0]['open'] >= (nifty_index_data.iloc[0]['open'] - nifty_index_data.iloc[0]['close']) * 1.5 or nifty_index_data.iloc[0]['close'] - nifty_index_data.iloc[0]['low'] >= (nifty_index_data.iloc[0]['open'] - nifty_index_data.iloc[0]['close']) * 1.5 )):
-                case = 2
-            if(is_buy == False and (nifty_index_data.iloc[0]['high'] - nifty_index_data.iloc[0]['close'] >= (nifty_index_data.iloc[0]['close'] - nifty_index_data.iloc[0]['open']) * 1.5 or nifty_index_data.iloc[0]['open'] - nifty_index_data.iloc[0]['low'] >= (nifty_index_data.iloc[0]['close'] - nifty_index_data.iloc[0]['open']) * 1.5 )):
-                case = 2
-            data = get_price_older(symbol_exness, mt5.TIMEFRAME_M5)
-            if(case == 1 or case == 2):
-                if(is_buy):
-                    # dua vao nen do
-                    sl = data['low']
-                    entry = data['open' if case == 1 else 'high']
-                    tp = entry + (entry - sl)
-                    lot = CalculateLotSize(entry, sl)
-                    place_stop(symbol_exness, mt5.ORDER_TYPE_BUY_STOP, lot, round(entry, 3), round(sl, 3), 0.0, margic_number)
-                    is_delete_old_order = False
-                else:
-                    # dua vao nen xanh
-                    sl = data['high']
-                    entry = data['open' if case == 1 else 'low']
-                    tp = entry - (sl - entry)
-                    lot = CalculateLotSize(entry, sl)
-                    place_stop(symbol_exness, mt5.ORDER_TYPE_SELL_STOP, lot, round(entry, 3), round(sl, 3), 0.0, margic_number)
-                    is_delete_old_order = False
-                margic_number += 1
+        print(f'{open1}-{open2}')
+       
 
-            price_check = nifty_index_data.iloc[0]['close']
-            
+        if(price_check != close1):
+            is_buy_1 = False if open1 > close1 else True
+            is_buy_2 = False if open2 > close2 else True
+            if(is_buy_1 and not is_buy_2):
+                body_1 = close1 - open1
+                body_2 = open2 - close2
+                if(body_2 <= body_1 / 2 and low2 > open1):
+                    lot = calculate_volume(high1 if high1 > high2 else high2, low2)
+                    print(lot)
+                    threading.Thread(target=play_sound).start()
+            if(not is_buy_1 and is_buy_2):
+                body_1 = open1 - close1
+                body_2 = close2 - open2
+                if(body_2 <= body_1 / 2 and high2 < open1):
+                    lot = calculate_volume(low1 if low1 < low2 else low2, high2)
+                    print(lot)
+                    threading.Thread(target=play_sound).start()
+                    
+        price_check = close1
     except:
       print('An exception occurred')
 

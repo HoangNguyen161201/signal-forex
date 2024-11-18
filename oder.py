@@ -26,7 +26,7 @@ def place_stop( symbol, type, lot, stop_price, stop_loss, take_profit, magic_num
         mt5.symbol_select(symbol, True)
 
     current_time = datetime.now().replace(second=0, microsecond=0)
-    expiration_time = current_time + timedelta(minutes=10)
+    expiration_time = current_time + timedelta(minutes=2)
 
     # Tạo yêu cầu lệnh
     order_request = {
