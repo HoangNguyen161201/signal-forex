@@ -140,10 +140,10 @@ def get_price_older(symbol, timeframe):
         return None
     return data
 
-def CalculateLotSize( entry_price, stop_loss_price):
+def CalculateLotSize( entry_price, stop_loss_price, distance_check):
 
     distance = abs(entry_price - stop_loss_price)
-    lot = round(((100 / distance) *0.02) , 2)
+    lot = round(((distance_check / distance) *0.02) , 2)
     if(lot <= 0.01):
       lot = 0.01
     

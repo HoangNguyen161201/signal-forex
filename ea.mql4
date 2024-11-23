@@ -5,7 +5,8 @@ void OnTick()
 {
    // Lấy giá Bid của cặp tiền tệ BTCUSD
    double bid = MarketInfo(symbol, MODE_BID);
-
+   double ask = MarketInfo(symbol, MODE_ASK);
+   
    // Mở file CSV để ghi dữ liệu. Đảm bảo đường dẫn file là chính xác.
    // Trong trường hợp này, file sẽ được ghi vào Desktop của người dùng
    int fileHandle = FileOpen(symbol + ".csv", FILE_CSV | FILE_WRITE);
@@ -14,7 +15,7 @@ void OnTick()
    if(fileHandle != INVALID_HANDLE)
    {
       // Ghi vào file: Ghi thời gian hiện tại (theo định dạng ngày và phút) và giá Bid
-      FileWrite(fileHandle, bid);
+      FileWrite(fileHandle, (bid + ask) / 2);
 
       // Đóng file sau khi ghi dữ liệu
       FileClose(fileHandle);
