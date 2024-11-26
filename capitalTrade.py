@@ -4,6 +4,8 @@ import MetaTrader5 as mt5
 import threading
 import pandas as pd
 from tvDatafeed import TvDatafeed, Interval
+from datetime import datetime
+import pytz
 
 print("start")
 
@@ -16,6 +18,13 @@ def play_sound():
     mixer.init()
     mixer.music.load('./ring.mp3')
     mixer.music.play()
+
+def edit_file(text):
+    with open('output.txt', 'a', encoding='utf-8') as file:
+        vietnam_tz = pytz.timezone('Asia/Ho_Chi_Minh')
+        now_vietnam = datetime.now(vietnam_tz)
+        formatted_time = now_vietnam.strftime('%H:%M %d-%m-%Y')
+        file.write(f"{formatted_time} {text}\n")
 
 while True:
     try:
@@ -35,6 +44,8 @@ while True:
             'low': nifty_index_data.iloc[1]['low']  
         }
 
+        print(candle_1_state['low'])
+
     
         is_buy_1 = False if candle_1_state['open'] > candle_1_state['close'] else True
         is_buy_2 = False if candle_2_state['open'] > candle_2_state['close'] else True
@@ -46,14 +57,16 @@ while True:
                 body_2 = candle_2_state['open'] - candle_2_state['close']
                 if(body_2 <= body_1 / 2 and candle_2_state['low'] > candle_1_state['open']):
                     lot = CalculateLotSize(candle_1_state['high'] if candle_1_state['high'] > candle_2_state['high'] else candle_2_state['high'], candle_2_state['low'], distance_lot_check)
-                    print(f"{symbol}-buy-{lot}")
+                    text = f"{symbol}-buy-{lot}"
+                    edit_file(text)
                     threading.Thread(target=play_sound).start()
             if(not is_buy_1 and is_buy_2):
                 body_1 = candle_1_state['open'] - candle_1_state['close']
                 body_2 = candle_2_state['close'] - candle_2_state['open']
                 if(body_2 <= body_1 / 2 and candle_2_state['high'] < candle_1_state['open']):
                     lot = CalculateLotSize(candle_1_state['low'] if candle_1_state['low'] < candle_2_state['low'] else candle_2_state['low'], candle_2_state['high'], distance_lot_check)
-                    print(f"{symbol}-sell-{lot}")
+                    text = f"{symbol}-sell-{lot}"
+                    edit_file(text)
                     threading.Thread(target=play_sound).start()
         price_check = candle_1_state['close']
     except:
