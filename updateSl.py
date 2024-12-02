@@ -1,8 +1,10 @@
 import MetaTrader5 as mt5
 
+path = r'C:\Program Files\RoboForex MT5 Terminal\terminal64.exe'
+
 def updare_sl(symbol, timeframe):
      # Khởi động MetaTrader 5
-    if not mt5.initialize():
+    if not mt5.initialize(path):
         print("Lỗi khi khởi tạo MetaTrader5", mt5.last_error())
         return False
 

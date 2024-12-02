@@ -1,14 +1,41 @@
 import MetaTrader5 as mt5
 from datetime import datetime, timedelta
 
-def place_order( symbol, type, lot, stop_price, stop_loss, take_profit, magic_number=234000, deviation=10):
+path = r'C:\Program Files\RoboForex MT5 Terminal\terminal64.exe'
+
+symbols = [
+    {
+        'symbol_capital': 'Gold',
+        'symbol_robo': 'XAUUSD',
+        'current_price_file': 'GOLD.csv',
+        'two_candle_price_old_file': 'GOLD_5m.csv',
+    },
+    {
+        'symbol_capital': 'US30',
+        'symbol_robo': '.US30Cash',
+        'current_price_file': 'US30.csv',
+        'two_candle_price_old_file': 'US30_5m.csv', 
+    },
+    {
+        'symbol_capital': 'US100',
+        'symbol_robo': '.USTECHCash',
+        'current_price_file': 'US100.csv',
+        'two_candle_price_old_file': 'US100_5m.csv',
+    },
+    {
+        'symbol_capital': 'DE40',
+        'symbol_robo': '.DE40Cash' 
+    },
+]
+
+def place_order(symbol, type, lot, stop_price, stop_loss, take_profit, magic_number=234000, deviation=10):
     # Khởi động MetaTrader 5
-    if not mt5.initialize():
+    if not mt5.initialize(path):
         print("Lỗi khi khởi tạo MetaTrader5", mt5.last_error())
         return False
 
     # Đăng nhập vào tài khoản giao dịch
-    if not mt5.login(79431100, "Cuem161201@", "Exness-MT5Trial8"):
+    if not mt5.login(67138737, "Cuem161201@", "RoboForex-ECN"):
         print("Lỗi khi đăng nhập vào tài khoản giao dịch:", mt5.last_error())
         mt5.shutdown()
         return False
@@ -59,12 +86,12 @@ def place_order( symbol, type, lot, stop_price, stop_loss, take_profit, magic_nu
 
 def place_stop( symbol, type, lot, stop_price, stop_loss, take_profit, magic_number=234000, deviation=10):
     # Khởi động MetaTrader 5
-    if not mt5.initialize():
+    if not mt5.initialize(path):
         print("Lỗi khi khởi tạo MetaTrader5", mt5.last_error())
         return False
 
     # Đăng nhập vào tài khoản giao dịch
-    if not mt5.login(79431100, "Cuem161201@", "Exness-MT5Trial8"):
+    if not mt5.login(67138737, "Cuem161201@", "RoboForex-ECN"):
         print("Lỗi khi đăng nhập vào tài khoản giao dịch:", mt5.last_error())
         mt5.shutdown()
         return False
@@ -92,7 +119,7 @@ def place_stop( symbol, type, lot, stop_price, stop_loss, take_profit, magic_num
         "tp": take_profit,
         "deviation": deviation,
         "magic": magic_number,
-        "type_time": mt5.ORDER_TIME_SPECIFIED, 
+        "type_time": mt5.ORDER_TIME_DAY, 
         "type_filling": mt5.ORDER_FILLING_IOC,
         "comment": f'{stop_loss}',
     }
@@ -113,21 +140,20 @@ def place_stop( symbol, type, lot, stop_price, stop_loss, take_profit, magic_num
     mt5.shutdown()
     return True
 
-def get_price_older(symbol, timeframe):    
-    mt5.initialize()
+def get_price_older(symbol, timeframe, number_candle):    
+    mt5.initialize(path)
 
     data = {}
 
-    if not mt5.login(79431100, "Cuem161201@", "Exness-MT5Trial8"):
+    if not mt5.login(67138737, "Cuem161201@", "RoboForex-ECN"):
         print(f"Đăng nhập thất bại, lỗi: {mt5.last_error()}")
     else:
         print("Đăng nhập thành công!")
-    n_candles = 2
 
-    rates = mt5.copy_rates_from_pos(symbol, timeframe, 0, n_candles)
+    rates = mt5.copy_rates_from_pos(symbol, timeframe, 0, number_candle)
 
     if rates is not None and len(rates) > 1:
-        previous_candle = rates[-2]
+        previous_candle = rates[0]
         data['open'] = previous_candle['open'] 
         data['high'] = previous_candle['high'] 
         data['low'] = previous_candle['low']  
@@ -140,35 +166,20 @@ def get_price_older(symbol, timeframe):
         return None
     return data
 
-def CalculateLotSize( entry_price, stop_loss_price, distance_check):
-
-    distance = abs(entry_price - stop_loss_price)
-    lot = round(((distance_check / distance) *0.02) , 2)
-    if(lot <= 0.01):
-      lot = 0.01
-    
-    if(lot >= 200):
-      lot = 190
-
-    return lot
-
-
-import MetaTrader5 as mt5
-
 # Kết nối tới MetaTrader 5
-if not mt5.initialize():
+if not mt5.initialize(path):
     print("Lỗi khi kết nối tới MetaTrader 5")
     mt5.shutdown()
     quit()
 
 def close_order_by_magic_number(magic_number):
     # Khởi động MetaTrader 5
-    if not mt5.initialize():
+    if not mt5.initialize(path):
         print("Lỗi khi khởi tạo MetaTrader5", mt5.last_error())
         return False
 
     # Đăng nhập vào tài khoản giao dịch
-    if not mt5.login(79431100, "Cuem161201@", "Exness-MT5Trial8"):
+    if not mt5.login(67138737, "Cuem161201@", "RoboForex-ECN"):
         print("Lỗi khi đăng nhập vào tài khoản giao dịch:", mt5.last_error())
         mt5.shutdown()
         return False
@@ -201,12 +212,12 @@ def get_current_price(symbol):
     :return: Từ điển chứa giá bid, ask, và last price hoặc None nếu thất bại.
     """
     # Khởi động MetaTrader 5
-    if not mt5.initialize():
+    if not mt5.initialize(path):
         print("Lỗi khi khởi tạo MetaTrader5", mt5.last_error())
         return None
 
     # Đăng nhập vào tài khoản giao dịch
-    if not mt5.login(79431100, "Cuem161201@", "Exness-MT5Trial8"):
+    if not mt5.login(67138737, "Cuem161201@", "RoboForex-ECN"):
         print(f"Đăng nhập thất bại, lỗi: {mt5.last_error()}")
         mt5.shutdown()
         return None
@@ -233,12 +244,12 @@ def get_current_price(symbol):
 
 def close_position(magic):
     # Khởi động MetaTrader 5
-    if not mt5.initialize():
+    if not mt5.initialize(path):
         print("Lỗi khi khởi tạo MetaTrader5", mt5.last_error())
         return False
 
     # Đăng nhập vào tài khoản giao dịch
-    if not mt5.login(79431100, "Cuem161201@", "Exness-MT5Trial8"):
+    if not mt5.login(67138737, "Cuem161201@", "RoboForex-ECN"):
         print("Lỗi khi đăng nhập vào tài khoản giao dịch:", mt5.last_error())
         mt5.shutdown()
         return False
@@ -278,3 +289,42 @@ def close_position(magic):
             
     # Ngắt kết nối MetaTrader 5
     mt5.shutdown()
+
+
+def calculate_lots(riskPercent, lDistance, symbol):
+    if not mt5.initialize(path):
+        print("Lỗi khi khởi tạo MetaTrader5", mt5.last_error())
+        return False
+
+    # Đăng nhập vào tài khoản giao dịch
+    if not mt5.login(67138737, "Cuem161201@", "RoboForex-ECN"):
+        print("Lỗi khi đăng nhập vào tài khoản giao dịch:", mt5.last_error())
+        mt5.shutdown()
+        return False
+    
+    # Get required symbol properties
+    ticksize = mt5.symbol_info(symbol).trade_tick_size
+    tickvalue = mt5.symbol_info(symbol).trade_tick_value
+    lotstep = mt5.symbol_info(symbol).volume_step
+    
+    # Check if the values are valid
+    if ticksize == 0 or tickvalue == 0 or lotstep == 0:
+        print("Lot size cannot be calculated due to invalid values.")
+        return 0
+    
+    # Get the account balance
+    account_balance = mt5.account_info().balance
+    
+    # Calculate risk money
+    riskMoney = account_balance * riskPercent / 100
+    
+    # Calculate money per lotstep
+    moneyLotstep = (lDistance / ticksize) * tickvalue * lotstep
+    
+    # Calculate the lot size
+    lots = riskMoney / moneyLotstep
+    
+    # Ensure the lot size is rounded down to the nearest valid lot step
+    lots = int(lots // lotstep) * lotstep * 0.01
+    
+    return round(lots, 2)
