@@ -150,12 +150,19 @@ def trade():
         print('không trade được vì không đúng điều kiện')
         reset()
     else:
-        if(is_buy and is_hedging and current_price <= ((candle2['high'] + candle2['low']) / 2)):
+        # chưa làm
+        if((is_buy and is_hedging and current_price >= (best_high + (best_high - candle2['low']))) or
+           (not is_buy and is_hedging and current_price <= (best_low - (candle2['high'] - best_low)))
+           ):
+            print('cán tp cắt lệnh')
+            reset()
+        # đã làm
+        if(is_buy and is_hedging and current_price <= ((best_high + candle2['low']) / 2)):
             print(f'đánh ngược để cân bằng {lot}')
             place_order(symbols[index]['symbol_robo'], mt5.ORDER_TYPE_SELL, lot, 0.0, 0.0, 0.0 )
             reset()
             
-        if(not is_buy and is_hedging and current_price >= ((candle2['high'] + candle2['low']) / 2)):
+        if(not is_buy and is_hedging and current_price >= ((candle2['high'] + best_low) / 2)):
             print(f'đánh ngược để cân bằng {lot}')
             place_order(symbols[index]['symbol_robo'], mt5.ORDER_TYPE_BUY, lot, 0.0, 0.0, 0.0 )
             reset()
