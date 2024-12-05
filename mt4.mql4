@@ -7,22 +7,22 @@ void OnTick()
    
    double high1 = iHigh(symbol, PERIOD_M5, 2); // Giá cao của cây nến thứ nhất
    double low1 = iLow(symbol, PERIOD_M5, 2);   // Giá thấp của cây nến thứ nhất
+   double open1 = iOpen(symbol, PERIOD_M5, 2);   // Giá thấp của cây nến thứ nhất
+   double close1 = iClose(symbol, PERIOD_M5, 2);   
    
    double high2 = iHigh(symbol, PERIOD_M5, 1); // Giá cao của cây nến thứ hai
    double low2 = iLow(symbol, PERIOD_M5, 1);   // Giá thấp của cây nến thứ hai
+   double open2 = iOpen(symbol, PERIOD_M5, 1);   // Giá thấp của cây nến thứ nhất
+   double close2 = iClose(symbol, PERIOD_M5, 1);   
    
       // Mở file CSV để ghi dữ liệu
-   int fileHandle1 = FileOpen(symbol + "_5m.csv", FILE_CSV | FILE_WRITE | FILE_READ, ';');
+   int fileHandle1 = FileOpen(symbol + "_5m.csv", FILE_CSV | FILE_WRITE);
 
    // Kiểm tra nếu file đã mở thành công
    if (fileHandle1 != INVALID_HANDLE)
    {
-      // Ghi tiêu đề nếu file trống
-      if (FileSize(fileHandle1) == 0)
-         FileWrite(fileHandle1, "Timestamp", "High1", "Low1", "High2", "Low2");
-
       // Ghi dữ liệu (timestamp hiện tại + giá trị high/low của 2 cây nến)
-      FileWrite(fileHandle1, TimeToString(TimeCurrent(), TIME_DATE | TIME_MINUTES), high1, low1, high2, low2);
+      FileWrite(fileHandle1,open1, close1, high1, low1,open2, close2, high2, low2);
 
       // Đóng file
       FileClose(fileHandle1);
