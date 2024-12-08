@@ -52,6 +52,12 @@ symbols = [
         'current_price_file': 'GBPJPY.csv',
         'two_candle_price_old_file': 'GBPJPY_5m.csv',
     },
+    {
+        'symbol_capital': 'GBPUSD',
+        'symbol_robo': 'GBPUSD',
+        'current_price_file': 'GBPUSD.csv',
+        'two_candle_price_old_file': 'GBPUSD_5m.csv',
+    },
 ]
 
 def place_order(symbol, type, lot, stop_price, stop_loss, take_profit, magic_number=234000, deviation=10):
@@ -356,7 +362,42 @@ def calculate_lots(riskPercent, lDistance, symbol):
     return round(lots, 2)
 
 
-def update_stop_loss(magic_number, symbol):
+def get_info_position(magic_number, symbol):
+    # Khởi tạo MetaTrader 5
+    if not mt5.initialize():
+        print("Lỗi khi khởi tạo MetaTrader5:", mt5.last_error())
+        return None
+
+    # Đăng nhập vào tài khoản giao dịch
+    if not mt5.login(67138737, "Cuem161201@", "RoboForex-ECN"):
+        print("Lỗi khi đăng nhập vào tài khoản giao dịch:", mt5.last_error())
+        mt5.shutdown()
+        return None
+
+    # Lấy danh sách các vị thế mở
+    positions = mt5.positions_get(symbol=symbol)
+    if positions is None or len(positions) == 0:
+        print("Không có vị thế mở cho symbol:", symbol)
+        mt5.shutdown()
+        return None
+
+    # Tìm vị thế khớp với magic_number
+    for position in positions:
+        if position.magic == magic_number:
+            mt5.shutdown()
+            return {
+                "ticket": position.ticket,
+                "price_open": position.price_open,
+                "sl": position.sl,
+                "tp": position.tp,
+            }
+
+    # Nếu không tìm thấy vị thế khớp
+    mt5.shutdown()
+    return None
+
+def update_stop_loss(magic_number, symbol, sl = None, tp = None):
+    is_success = True
     if not mt5.initialize(path):
         print("Lỗi khi khởi tạo MetaTrader5", mt5.last_error())
         return False
@@ -380,25 +421,22 @@ def update_stop_loss(magic_number, symbol):
             ticket = position.ticket
             price_open = position.price_open  # Giá mở vị thế ban đầu
 
-            # Xác định SL mới
-            sl_price = price_open
-
             # Gửi lệnh cập nhật SL
             request = {
                 "action": mt5.TRADE_ACTION_SLTP,
                 "symbol": symbol,
                 "position": ticket,
-                "sl": sl_price,  # Cập nhật Stop Loss
-                "tp": position.tp,  # Giữ nguyên Take Profit (nếu có)
+                "sl": price_open if sl is None else sl,  # Cập nhật Stop Loss
+                "tp": position.tp if tp is None else tp,  # Giữ nguyên Take Profit (nếu có)
                 "magic": magic_number
             }
             result = mt5.order_send(request)
 
-            if result.retcode == mt5.TRADE_RETCODE_DONE:
-                print(f"Cập nhật SL thành công cho position {ticket} ({symbol}): {sl_price}")
-            else:
-                print(f"Lỗi khi cập nhật SL cho position {ticket}: {result.comment}")
+
     
     # Đóng MetaTrader5
     mt5.shutdown()
-    return True
+    return is_success
+
+# place_order('XAUUSD', mt5.ORDER_TYPE_BUY, 0.01, 0.0, 0.0, 0.0, 1122)
+# update_stop_loss(1122, 'XAUUSD', 2500.00, 2700.00)

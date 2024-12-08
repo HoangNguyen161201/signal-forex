@@ -1,5 +1,5 @@
 from pygame import mixer  # Load the popular external library
-from oder import close_position, place_order, calculate_lots, update_stop_loss
+from oder import close_position, place_order, calculate_lots, update_stop_loss, get_info_position
 import MetaTrader5 as mt5
 import threading
 from datetime import datetime
@@ -20,6 +20,7 @@ symbol_check_price = symbols[index]['symbol_capital']
 
 
 # thay đổi
+info_checks = []
 info_trades = []
 price_check = 0
 
@@ -28,7 +29,7 @@ print("start")
 # Lấy thời gian hiện tại
 def get_random_number(): 
     current_time = time.time()
-    random_number = int(current_time * 1000) % 10000
+    random_number = int(current_time * 1000) % 100000
     return random_number
 
 def play_sound():  
@@ -44,7 +45,7 @@ def edit_file(text):
         file.write(f"{formatted_time} {text}\n")
 
 def check():
-    global price_check, info_trades
+    global price_check, info_checks
     while True:
         try:
             candle_1_state = None
@@ -84,13 +85,7 @@ def check():
                             )
                         text = f"{symbol_trade}-buy-{lot}"
                     
-                        info_trades.append(SymboInfoTrade({
-                            'high': candle_1_state['high'],
-                            'low': candle_1_state['low']
-                        },{
-                            'high': candle_2_state['high'],
-                            'low': candle_2_state['low']
-                        },lot, True))
+                        info_checks.append(SymboInfoTrade(candle_1_state,candle_2_state,lot, True))
                         edit_file(text)
                         threading.Thread(target=play_sound).start()
                 if(not is_buy_1 and is_buy_2):
@@ -104,13 +99,7 @@ def check():
                             )
                         text = f"{symbol_trade}-sell-{lot}"
 
-                        info_trades.append(SymboInfoTrade({
-                            'high': candle_1_state['high'],
-                            'low': candle_1_state['low']
-                        },{
-                            'high': candle_2_state['high'],
-                            'low': candle_2_state['low']
-                        },lot, False))
+                        info_checks.append(SymboInfoTrade(candle_1_state,candle_2_state,lot, False))
 
                         edit_file(text)
                         threading.Thread(target=play_sound).start()
@@ -120,9 +109,14 @@ def check():
       
 
 def trade():
-    global info_trades
+    global info_trades, info_checks
     while True:
         try:
+            if(info_checks.__len__() > 0):
+                print('cập nhật mảng')
+                info_trades.extend(info_checks)
+                info_checks.clear()
+                
             if(info_trades.__len__() > 0):
                 best_high = info_trades[0].candle1['high'] if info_trades[0].candle1['high'] > info_trades[0].candle2['high'] else info_trades[0].candle2['high'] 
                 best_low = info_trades[0].candle1['low'] if info_trades[0].candle1['low'] < info_trades[0].candle2['low'] else info_trades[0].candle2['low'] 
@@ -138,12 +132,31 @@ def trade():
                 for key, info_trade in enumerate(reversed(info_trades)):
                     index_to_delete = len(info_trades) - 1 - key
 
-                    if((info_trade.is_buy and not info_trade.is_hedging and current_price <= best_low) or 
-                    (not info_trade.is_buy and not info_trade.is_hedging and current_price >= best_high)
+                    if((info_trade.is_buy and not info_trade.is_hedging and current_price < best_low) or 
+                    (not info_trade.is_buy and not info_trade.is_hedging and current_price > best_high)
                     ):
                         print('không trade được vì không đúng điều kiện')
                         info_trades.pop(index_to_delete)
                     else:
+                        if(info_trade.is_wait_to_cut and info_trade.magic_1 and info_trade.magic_2):
+                            position1 = get_info_position(info_trade.magic_1, symbol_trade)
+                            position2 = get_info_position(info_trade.magic_2, symbol_trade)
+                            if(position1 is not None and position2 is not None):
+                                if(position1['sl'] != 0 and position1['tp'] != 0 and position2['sl'] != 0 and position2['tp'] != 0):
+                                    print('đã cập nhật thành công sl và tp cả 2')
+                                    info_trades.pop(index_to_delete)
+                                else:
+                                  
+                                    distance = abs(position1['price_open'] - position2['price_open'])
+                                    tp1 = position1['price_open']
+                                    sl1 = position1['price_open'] - (distance * 2) if info_trade.is_buy else position1['price_open'] + (distance * 2)
+                                    tp2 = position2['price_open'] - distance if info_trade.is_buy else position2['price_open'] + distance
+                                    sl2 = position1['price_open']
+                                    update_stop_loss(info_trade.magic_1, symbol_trade,sl1, tp1 )
+                                    update_stop_loss(info_trade.magic_2, symbol_trade, sl2, tp2)
+                          
+                            
+
                         if((info_trade.is_buy and not info_trade.is_update_sl and info_trade.is_hedging and current_price >= best_high +((best_high - info_trade.candle2['low'])/2)) or
                         (not info_trade.is_buy and not info_trade.is_update_sl and info_trade.is_hedging and current_price <= best_low -((info_trade.candle2['high'] - best_low)/2))
                         ):
@@ -155,6 +168,7 @@ def trade():
                         (not info_trade.is_buy and info_trade.is_update_sl and current_price >= best_low)
                         ):
                             print('hòa vốn')
+                            close_position(info_trade.magic_1)
                             info_trades.pop(index_to_delete)
                             
                     
@@ -165,15 +179,6 @@ def trade():
                             close_position(info_trade.magic_1)
                             close_position(info_trade.magic_2)
                             info_trades.pop(index_to_delete)
-                        
-                        if((info_trade.is_buy and info_trade.is_wait_to_cut and current_price >= best_high) or
-                        (not info_trade.is_buy and info_trade.is_wait_to_cut and current_price <= best_low)
-                        ):
-                            print('lỗ 1%')
-                            close_position(info_trade.magic_1)
-                            close_position(info_trade.magic_2)
-                            info_trades.pop(index_to_delete)
-
 
                         if((info_trade.is_buy and info_trade.is_wait_to_cut and current_price <= info_trade.candle2['low']) or
                         (not info_trade.is_buy and info_trade.is_wait_to_cut and current_price >= info_trade.candle2['high'])
